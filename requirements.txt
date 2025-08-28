@@ -1,0 +1,7 @@
+dlt
+feedparser
+duckdb
+toml
+openai
+pytest
+streamlit

@@ -1,0 +1,18 @@
+{
+    "name": "Jobbr",
+    "build": {
+        "dockerfile": "../Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "python.pythonPath": "/usr/local/bin/python3"
+            },
+            "extensions": [
+                "ms-python.python"
+            ]
+        }
+    },
+    "forwardPorts": [],
+    "postCreateCommand": "export PATH='/root/.duckdb/cli/latest':$PATH"
+}

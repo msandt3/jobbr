@@ -20,5 +20,4 @@ RUN pip install --upgrade pip
 COPY requirements.txt ./
 RUN pip install -r requirements.txt || true
 
-# Default command
-CMD ["python3"]
+RUN export PATH='/root/.duckdb/cli/latest':$PATH

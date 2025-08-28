@@ -14,5 +14,7 @@
         }
     },
     "forwardPorts": [],
-    "postCreateCommand": "export PATH='/root/.duckdb/cli/latest':$PATH"
+    "remoteEnv": {
+        "PATH": "${containerEnv:PATH}:/root/.duckdb/cli/latest"
+    }
 }

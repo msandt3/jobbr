@@ -7,6 +7,5 @@ This is aimed at running in devcontainers - so it should _just work_ if you have
 
 ### TODO
 - Email out top 3 jobs for the day
-- Figure out why duckdb isn't exported to path in the devcontainer
-- Tests & more tests
+- DUCK DB SOURCE- Tests & more tests
 - Deployment

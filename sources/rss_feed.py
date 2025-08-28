@@ -3,20 +3,21 @@ import json
 import dlt
 import feedparser
 import hashlib
-
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
+import asyncio
 
 @dlt.source
 def rss_feed_source(rss_feed_url: str):
     return rss_entries_resource(rss_feed_url)
 
-@dlt.resource(write_disposition="merge", primary_key="id")
+@dlt.resource(table_name="jobs", write_disposition="merge", primary_key="id")
 def rss_entries_resource(rss_feed_url: str):
     """Fetch and parse entries from an RSS feed."""
     print("Fetching RSS Feed, yielding each entry")
 
     # Set up state tracking so we dont reprocess old entries
     # There's no way to page the RSS feed so we have to track what we've seen
+    # TODO - only do this at the end of the pipeline so we can retry records that fail
     processed_record_ids = dlt.current.resource_state().setdefault("processed_record_ids", [])
     feed = feedparser.parse(rss_feed_url)
     for entry in feed.entries:
@@ -37,22 +38,18 @@ def rss_entries_resource(rss_feed_url: str):
             "created_at": datetime.now()
         }
 
-#TODO: Make batched or async so this doesn't take forever
-@dlt.transformer(data_from=rss_entries_resource, parallelized=True)
+@dlt.transformer(table_name="jobs", data_from=rss_entries_resource, parallelized=True)
 def get_company_name_from_rss_entry(job: dict):
     response = _get_open_ai_company_name(job["title"])
     yield {
         **job,
         "company_name": json.loads(response.output_text)["company"],
     }
-    yield {
-        **job
-    }
 
-@dlt.transformer(data_from=rss_entries_resource)
-def get_job_fit_score_from_rss_entry(job: dict):
+@dlt.transformer(table_name="jobs", data_from=rss_entries_resource)
+async def get_job_fit_score_from_rss_entry(job: dict):
     print(f"Processing fit for entry ID: {job['id']}")
-    response = _get_open_ai_fit_score(job["summary"])
+    response = await _get_open_ai_fit_score(job["summary"])
     parsed = json.loads(response.output_text)
     yield {
         **job,
@@ -75,23 +72,23 @@ def _get_open_ai_company_name(title: str):
     )
     return response
     
-def _get_open_ai_fit_score(summary: str):
+async def _get_open_ai_fit_score(summary: str):
     api_key = dlt.secrets.get("OPENAI_API_KEY")
-    client = OpenAI(api_key=api_key)
-    response = client.responses.create(
+    client = AsyncOpenAI(api_key=api_key)
+    response = await client.responses.create(
         model="gpt-5-nano",
         instructions="""
             You are a recruiter at a company looking to fill a position.
-
-            Extract key skills and qualifications from the job description provided in the input. 
-            Then carefully compare these requirements with the candidate's resume provided in the vector store. 
+ 
+            Carefully compare the job description input with the candidate's resume provided in the vector store. 
             Rank the resume's fit for the job on a scale of 1 to 10, with 10 being the best fit using whole numbers only. 
+            
 
 
             - Only use information presented in the resume and job description to determine the fit score. 
             - Present brief reasoning for the score in 2-3 sentences. 
 
-            Return the result in JSON format with the following structure:
+            Return the result in JSON format with the following structure, make sure it is always a valid JSON structure with open and close brackets.:
             { "fit_score": <integer>, "reasoning": "<brief reasoning>" }
         """,
         input=summary,

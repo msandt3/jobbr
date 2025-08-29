@@ -16,6 +16,7 @@ def main():
     pipeline = dlt.pipeline(
         pipeline_name="remote_jobs_pipeline",
         destination="duckdb",
+        dataset_name="remote_jobs"
     )
 
     pipeline.run(rss_feed_source(rss_url) | get_company_name_from_rss_entry | get_job_fit_score_from_rss_entry)

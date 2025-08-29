@@ -49,13 +49,16 @@ def get_company_name_from_rss_entry(job: dict):
 async def get_job_fit_score_from_rss_entry(job: dict):
     print(f"Processing fit for entry ID: {job['id']}")
     response = await _get_open_ai_fit_score(job["summary"])
-    parsed = json.loads(response.output_text)
+    try:
+        parsed = json.loads(response.output_text)
+    except json.JSONDecodeError:
+        print(f"Failed to parse JSON response: {response.output_text}")
+        parsed = {"fit_score": None, "reasoning": "Failed to parse response"}
     yield {
         **job,
         "fit_score": parsed["fit_score"],
         "reasoning": parsed["reasoning"]
     }
-
 
 def _get_open_ai_company_name(title: str):
     api_key = dlt.secrets.get("OPENAI_API_KEY")
@@ -86,9 +89,10 @@ async def _get_open_ai_fit_score(summary: str):
 
             - Only use information presented in the resume and job description to determine the fit score. 
             - Present brief reasoning for the score in 2-3 sentences. 
-
-            Return the result in JSON format with the following structure, make sure it is always a valid JSON structure with open and close brackets.:
-            { "fit_score": <integer>, "reasoning": "<brief reasoning>" }
+            
+            Output Structure
+            Return the result in JSON format with the following structure, make sure it is always a valid JSON structure with open and close brackets.
+            :{ "fit_score": <integer>, "reasoning": "<brief reasoning>" }
         """,
         input=summary,
         tools=[{

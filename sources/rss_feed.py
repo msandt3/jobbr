@@ -4,7 +4,6 @@ import dlt
 import feedparser
 import hashlib
 from openai import OpenAI, AsyncOpenAI
-import asyncio
 
 @dlt.source
 def rss_feed_source(rss_feed_url: str):

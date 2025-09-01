@@ -5,6 +5,10 @@ A quick little toolchain that I used to search job opps and a few other things. 
 This is aimed at running in devcontainers - so it should _just work_ if you have that running. 
 
 
+## Tests
+In the devcontainer run - `$ pytest`
+
+
 ### TODO
 - Email out top 3 jobs for the day
 - DUCK DB SOURCE- Tests & more tests

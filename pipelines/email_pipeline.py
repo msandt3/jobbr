@@ -1,5 +1,4 @@
 import dlt
-from duckdb import duckdb
 from sources.duckdb_source import duckdb_source
 from destinations.email_destination import email_destination
 

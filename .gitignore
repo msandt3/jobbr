@@ -8,3 +8,5 @@ secrets.toml
 # ignore duckdb
 *.duckdb
 *.wal
+# ignore internal tools
+.tool-versions

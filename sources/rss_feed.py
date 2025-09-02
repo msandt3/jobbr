@@ -45,6 +45,8 @@ def get_company_name_from_rss_entry(job: dict):
         "company_name": json.loads(response.output_text)["company"],
     }
 
+# TODO - retries or better control flow on error handling. Treating OpenAI like an API 
+# causes issues when it cannot interpret the input or "find" the resume on file. 
 @dlt.transformer(table_name="jobs", data_from=rss_entries_resource)
 async def get_job_fit_score_from_rss_entry(job: dict):
     print(f"Processing fit for entry ID: {job['id']}")

@@ -15,7 +15,7 @@ def main():
 
     pipeline = dlt.pipeline(
         pipeline_name="remote_jobs_pipeline",
-        destination="duckdb",
+        destination="motherduck",
         dataset_name="remote_jobs"
     )
 

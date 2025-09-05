@@ -15,7 +15,7 @@ def main():
     print(f"Using RSS feed URL: {rss_url}")
     pipeline = dlt.pipeline(
         pipeline_name="jobs_pipeline",
-        destination="duckdb",
+        destination="motherduck",
         dataset_name="atlanta_jobs"
     )
 

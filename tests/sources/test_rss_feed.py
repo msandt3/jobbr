@@ -96,7 +96,7 @@ def test_handles_malformed_rss_payload(mocked_parse):
         bozo=False,
         entries=[
             {
-                "title": "[Action Required]",
+                "title": "[Action required]",
                 "summary": "https://example.com",
                 "published": "2025-08-27",
                 "link": "https://example.com"

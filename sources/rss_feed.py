@@ -59,7 +59,7 @@ async def get_job_fit_score_from_rss_entry(job: dict):
     }
 
 def _get_open_ai_company_name(title: str):
-    api_key = dlt.secrets.get("OPENAI_API_KEY")
+    api_key = dlt.secrets.get("openai.api_key")
     client = OpenAI(api_key=api_key)
     response = client.responses.create(
         model="gpt-5-nano",
@@ -77,7 +77,7 @@ def _get_open_ai_company_name(title: str):
         return {"company": None}
     
 async def _get_open_ai_fit_score(summary: str):
-    api_key = dlt.secrets.get("OPENAI_API_KEY")
+    api_key = dlt.secrets.get("openai.api_key")
     client = AsyncOpenAI(api_key=api_key)
     response = await client.responses.create(
         model="gpt-5-nano",
@@ -115,7 +115,7 @@ def check_rate_limit(feed: FeedParserDict):
     When we get exactly one element back and its title starts with "[Action Required]",
     this indicates a rate limit response rather than actual job entries, so we skip processing.
     """
-    if len(feed.entries) == 1 and feed.entries[0].get("title").startswith("[Action Required]"):
+    if len(feed.entries) == 1 and feed.entries[0].get("title").startswith("[Action required]"):
         print("Rate limit detected - clearing entries")
         feed.entries = []
     return feed

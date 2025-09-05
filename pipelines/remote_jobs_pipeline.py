@@ -4,7 +4,7 @@ from sources.rss_feed import get_company_name_from_rss_entry, get_job_fit_score_
 
 def main():
     try:
-        rss_url = dlt.secrets.get("REMOTE_FEED_URL")
+        rss_url = dlt.secrets.get("rss.remote_feed_url")
     except FileNotFoundError:
         print("Configuration file not found. Please ensure .dlt/config.toml exists.")
         return

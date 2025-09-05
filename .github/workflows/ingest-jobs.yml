@@ -26,7 +26,7 @@ jobs:
         
     - name: Run remote jobs pipeline
       env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        OPENAI__API_KEY: ${{ secrets.OPENAI_API_KEY }}
         DESTINATION__MOTHERDUCK__CREDENTIALS: ${{ secrets.MOTHERDUCK_CREDENTIALS }}
         RSS__REMOTE_FEED_URL: ${{ secrets.REMOTE_FEED_URL }}
         OPENAI__VECTOR_STORE_ID: ${{ secrets.OPENAI_VECTOR_STORE_ID }}
@@ -36,9 +36,9 @@ jobs:
         
     - name: Run atlanta jobs pipeline  
       env:
-        OPENAI__OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        OPENAI__API_KEY: ${{ secrets.OPENAI_API_KEY }}
         DESTINATION__MOTHERDUCK__CREDENTIALS: ${{ secrets.MOTHERDUCK_CREDENTIALS }}
-        RSS_ATLANTA_FEED_URL: ${{ secrets.ATLANTA_FEED_URL }}
+        RSS__ATLANTA_FEED_URL: ${{ secrets.ATLANTA_FEED_URL }}
         OPENAI__VECTOR_STORE_ID: ${{ secrets.OPENAI_VECTOR_STORE_ID }}
       run: |
         echo "Running atlanta jobs pipeline..."

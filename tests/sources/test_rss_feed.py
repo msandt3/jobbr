@@ -1,7 +1,8 @@
 import pytest
 from sources.rss_feed import rss_entries_resource
-from unittest.mock import patch
-from feedparser.util import FeedParserDict
+from sources.rss_feed import _get_open_ai_company_name, _get_open_ai_fit_score
+from unittest.mock import patch, MagicMock
+from feedparser import FeedParserDict
 
 @pytest.fixture
 def mock_feed_entries():
@@ -109,3 +110,72 @@ def test_handles_malformed_rss_payload(mocked_parse):
     # Currently would fail on line 23: entry.get("link").encode("utf-8")
     results = list(rss_entries_resource("mock_url"))
     assert len(results) == 0
+@patch('sources.rss_feed.OpenAI')
+@patch('dlt.secrets.get')
+def test_get_open_ai_company_name(mock_secrets, mock_openai):
+    mock_secrets.return_value = "test-api-key"
+    mock_response = MagicMock()
+    mock_response.output_text = '{"company": "Acme Corp"}'
+    mock_client = MagicMock()
+    mock_client.responses.create.return_value = mock_response
+    mock_openai.return_value = mock_client
+    
+    result = _get_open_ai_company_name("Software Engineer at Acme Corp")
+    
+    assert result == {"company": "Acme Corp"}
+    mock_openai.assert_called_once_with(api_key="test-api-key")
+    mock_client.responses.create.assert_called()
+
+
+@patch('sources.rss_feed.OpenAI')
+@patch('dlt.secrets.get')
+def test_get_open_ai_company_name_returns_null_on_json_error(mock_secrets, mock_openai):
+    mock_secrets.return_value = "test-api-key"
+    mock_response = MagicMock()
+    mock_response.output_text = 'Invalid JSON response from OpenAI'
+    mock_client = MagicMock()
+    mock_client.responses.create.return_value = mock_response
+    mock_openai.return_value = mock_client
+    
+    result = _get_open_ai_company_name("Software Engineer at Acme Corp")
+    
+    assert result == {"company": None}
+
+@pytest.mark.asyncio
+@patch('sources.rss_feed.AsyncOpenAI')
+@patch('dlt.secrets.get')
+async def test_get_open_ai_fit_score_happy_path(mock_secrets, mock_async_openai):
+    mock_secrets.return_value = "test-api-key"
+    mock_response = MagicMock()
+    mock_response.output_text = '{"fit_score": 8, "reasoning": "Good match for required skills"}'
+    mock_client = MagicMock()
+    
+    async def mock_create(*args, **kwargs):
+        return mock_response
+    
+    mock_client.responses.create = mock_create
+    mock_async_openai.return_value = mock_client
+    
+    result = await _get_open_ai_fit_score("Senior Python developer position")
+    
+    assert result == {"fit_score": 8, "reasoning": "Good match for required skills"}
+    mock_async_openai.assert_called_once_with(api_key="test-api-key")
+
+@pytest.mark.asyncio
+@patch('sources.rss_feed.AsyncOpenAI')
+@patch('dlt.secrets.get')
+async def test_get_open_ai_fit_score_invalid_json_response(mock_secrets, mock_async_openai):
+    mock_secrets.return_value = "test-api-key"
+    mock_response = MagicMock()
+    mock_response.output_text = 'Invalid JSON response from OpenAI'
+    mock_client = MagicMock()
+    
+    async def mock_create(*args, **kwargs):
+        return mock_response
+    
+    mock_client.responses.create = mock_create
+    mock_async_openai.return_value = mock_client
+    
+    result = await _get_open_ai_fit_score("Senior Python developer position")
+    
+    assert result == {"fit_score": None, "reasoning": "Failed to parse response"}

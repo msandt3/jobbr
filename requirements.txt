@@ -4,4 +4,7 @@ duckdb
 toml
 openai
 pytest
+pytest-asyncio
 streamlit
+dlt[cli]
+dlt[motherduck]

@@ -105,11 +105,9 @@ def test_handles_malformed_rss_payload(mocked_parse):
         feed=FeedParserDict(),
         headers={},
     )
-
-    # This should handle the case gracefully rather than crashing
-    # Currently would fail on line 23: entry.get("link").encode("utf-8")
     results = list(rss_entries_resource("mock_url"))
     assert len(results) == 0
+    
 @patch('sources.rss_feed.OpenAI')
 @patch('dlt.secrets.get')
 def test_get_open_ai_company_name(mock_secrets, mock_openai):

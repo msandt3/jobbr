@@ -42,7 +42,7 @@ def get_company_name_from_rss_entry(job: dict):
     response = _get_open_ai_company_name(job["title"])
     yield {
         **job,
-        "company_name": json.loads(response.output_text)["company"],
+        "company_name": response["company"],
     }
 
 # TODO - retries or better control flow on error handling. Treating OpenAI like an API 
@@ -51,15 +51,10 @@ def get_company_name_from_rss_entry(job: dict):
 async def get_job_fit_score_from_rss_entry(job: dict):
     print(f"Processing fit for entry ID: {job['id']}")
     response = await _get_open_ai_fit_score(job["summary"])
-    try:
-        parsed = json.loads(response.output_text)
-    except json.JSONDecodeError:
-        print(f"Failed to parse JSON response: {response.output_text}")
-        parsed = {"fit_score": None, "reasoning": "Failed to parse response"}
     yield {
         **job,
-        "fit_score": parsed["fit_score"],
-        "reasoning": parsed["reasoning"]
+        "fit_score": response["fit_score"],
+        "reasoning": response["reasoning"]
     }
 
 def _get_open_ai_company_name(title: str):
@@ -74,7 +69,11 @@ def _get_open_ai_company_name(title: str):
         """,
         input=title
     )
-    return response
+    # Parse and return JSON response
+    try:
+        return json.loads(response.output_text)
+    except json.JSONDecodeError:
+        return {"company": None}
     
 async def _get_open_ai_fit_score(summary: str):
     api_key = dlt.secrets.get("OPENAI_API_KEY")
@@ -102,4 +101,8 @@ async def _get_open_ai_fit_score(summary: str):
             "vector_store_ids": [dlt.secrets.get("openai.vector_store_id")]
         }]
     )
-    return response
+    # Parse and return JSON response
+    try:
+        return json.loads(response.output_text)
+    except json.JSONDecodeError:
+        return {"fit_score": None, "reasoning": "Failed to parse response"}

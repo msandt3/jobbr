@@ -26,8 +26,12 @@ jobs:
         
     - name: Run email pipeline
       env:
-        MOTHERDUCK_CREDENTIALS: ${{ secrets.MOTHERDUCK_CREDENTIALS }}
-        MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+        DESTINATION__MOTHERDUCK__CREDENTIALS: ${{ secrets.MOTHERDUCK_CREDENTIALS }}
+        MAILGUN__API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+        MAILGUN__BASE_URL: ${{ secrets.MAILGUN_BASE_URL }}
+        MAILGUN__SANDBOX_DOMAIN: ${{ secrets.MAILGUN_SANDBOX_DOMAIN }}
+        MAILGUN__DESTINATION_EMAIL: ${{ secrets.MAILGUN_DESTINATION_EMAIL }}
+        MAILGUN__SENDING_KEY: ${{ secrets.MAILGUN_SENDING_KEY }}
       run: |
         echo "Running email pipeline..."
         python -m pipelines.email_pipeline

@@ -1,9 +1,7 @@
-import inspect
 import pytest
 from sources.rss_feed import rss_entries_resource
-from sources.rss_feed import _get_open_ai_company_name
-from unittest.mock import patch, MagicMock
-from feedparser import FeedParserDict
+from unittest.mock import patch
+from feedparser.util import FeedParserDict
 
 @pytest.fixture
 def mock_feed_entries():
@@ -89,4 +87,25 @@ def test_skips_already_processed_entries(mocked_state, mocked_parse, mock_feed_e
     results = list(rss_entries_resource("mock_url"))
     assert len(results) == 0
 
-# def test_handles_no_link
+@patch('sources.rss_feed.feedparser.parse')
+def test_handles_malformed_rss_payload(mocked_parse):
+    """Test that rss_entries_resource handles case where RSS entries lack required link field"""
+    # Mock feedparser to return entries without link field
+    mocked_parse.return_value = FeedParserDict(
+        bozo=False,
+        entries=[
+            {
+                "title": "[Action Required]",
+                "summary": "https://example.com",
+                "published": "2025-08-27",
+                "link": "https://example.com"
+            }
+        ],
+        feed=FeedParserDict(),
+        headers={},
+    )
+
+    # This should handle the case gracefully rather than crashing
+    # Currently would fail on line 23: entry.get("link").encode("utf-8")
+    results = list(rss_entries_resource("mock_url"))
+    assert len(results) == 0

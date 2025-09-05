@@ -4,7 +4,7 @@ from sources.rss_feed import get_company_name_from_rss_entry, get_job_fit_score_
 
 def main():
     try:
-        rss_url = dlt.secrets.get("ATLANTA_FEED_URL")
+        rss_url = dlt.secrets.get("rss.atlanta_feed_url")
     except FileNotFoundError:
         print("Configuration file not found. Please ensure .dlt/config.toml exists.")
         return
@@ -12,10 +12,9 @@ def main():
         print("job_feed_url not found in configuration file.")
         return
     
-    print(f"Using RSS feed URL: {rss_url}")
     pipeline = dlt.pipeline(
         pipeline_name="jobs_pipeline",
-        destination="duckdb",
+        destination="motherduck",
         dataset_name="atlanta_jobs"
     )
 

@@ -4,6 +4,7 @@ import dlt
 import feedparser
 import hashlib
 from openai import OpenAI, AsyncOpenAI
+from feedparser.util import FeedParserDict
 
 @dlt.source
 def rss_feed_source(rss_feed_url: str):
@@ -18,10 +19,10 @@ def rss_entries_resource(rss_feed_url: str):
     # There's no way to page the RSS feed so we have to track what we've seen
     # TODO - only do this at the end of the pipeline so we can retry records that fail
     processed_record_ids = dlt.current.resource_state().setdefault("processed_record_ids", [])
-    feed = feedparser.parse(rss_feed_url)
+    feed = check_rate_limit(feedparser.parse(rss_feed_url))
+
     for entry in feed.entries:
         hashed_id = hashlib.sha256(entry.get("link").encode("utf-8")).hexdigest()
-
         if hashed_id in processed_record_ids:
             print(f"Skipping already processed entry with ID: {hashed_id}")
             continue
@@ -58,7 +59,7 @@ async def get_job_fit_score_from_rss_entry(job: dict):
     }
 
 def _get_open_ai_company_name(title: str):
-    api_key = dlt.secrets.get("OPENAI_API_KEY")
+    api_key = dlt.secrets.get("openai.api_key")
     client = OpenAI(api_key=api_key)
     response = client.responses.create(
         model="gpt-5-nano",
@@ -76,7 +77,7 @@ def _get_open_ai_company_name(title: str):
         return {"company": None}
     
 async def _get_open_ai_fit_score(summary: str):
-    api_key = dlt.secrets.get("OPENAI_API_KEY")
+    api_key = dlt.secrets.get("openai.api_key")
     client = AsyncOpenAI(api_key=api_key)
     response = await client.responses.create(
         model="gpt-5-nano",
@@ -106,3 +107,15 @@ async def _get_open_ai_fit_score(summary: str):
         return json.loads(response.output_text)
     except json.JSONDecodeError:
         return {"fit_score": None, "reasoning": "Failed to parse response"}
+
+
+def check_rate_limit(feed: FeedParserDict):
+    """
+    Check for rate limit responses from RSS feeds.
+    When we get exactly one element back and its title starts with "[Action Required]",
+    this indicates a rate limit response rather than actual job entries, so we skip processing.
+    """
+    if len(feed.entries) == 1 and feed.entries[0].get("title").startswith("[Action required]"):
+        print("Rate limit detected - clearing entries")
+        feed.entries = []
+    return feed

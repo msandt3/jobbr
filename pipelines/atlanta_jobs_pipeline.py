@@ -12,7 +12,6 @@ def main():
         print("job_feed_url not found in configuration file.")
         return
     
-    print(f"Using RSS feed URL: {rss_url}")
     pipeline = dlt.pipeline(
         pipeline_name="jobs_pipeline",
         destination="motherduck",

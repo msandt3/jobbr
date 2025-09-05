@@ -36,10 +36,10 @@ jobs:
         
     - name: Run atlanta jobs pipeline  
       env:
-        OPENAI__API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        DESTINATION__MOTHERDUCK__CREDENTIALS: ${{ secrets.MOTHERDUCK_CREDENTIALS }}
-        RSS__ATLANTA_FEED_URL: ${{ secrets.ATLANTA_FEED_URL }}
-        OPENAI__VECTOR_STORE_ID: ${{ secrets.OPENAI_VECTOR_STORE_ID }}
+        OPENAI__API_KEY: ${{ secrets.OPENAI__API_KEY }}
+        DESTINATION__MOTHERDUCK__CREDENTIALS: ${{ secrets.DESTINATION__MOTHERDUCK__CREDENTIALS }}
+        RSS__ATLANTA_FEED_URL: ${{ secrets.RSS__ATLANTA_FEED_URL }}
+        OPENAI__VECTOR_STORE_ID: ${{ secrets.OPENAI__VECTOR_STORE_ID }}
       run: |
         echo "Running atlanta jobs pipeline..."
         python -m pipelines.atlanta_jobs_pipeline
